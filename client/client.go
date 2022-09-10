@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 )
 
 type ClientConfig struct {
@@ -15,6 +16,7 @@ type ClientConfig struct {
 	Version          string
 	HealthEndpoint   string
 	AccountsEndpoint string
+	Client           *http.Client
 }
 
 type Client struct {
@@ -35,6 +37,7 @@ func WithDefaultConfig() Client {
 			Version:          DefaultVersion,
 			HealthEndpoint:   DefaultHealthEndpoint,
 			AccountsEndpoint: DefaultAccountsEndpoint,
+			Client:           &http.Client{},
 		},
 	}
 }
@@ -49,10 +52,12 @@ func (c *Client) getURLWithId(endpoint string, id string) string {
 }
 
 func (c *Client) IsAvailable() error {
-	res, err := http.Get(c.getURL(c.Config.HealthEndpoint))
+	res, err := c.Config.Client.Get(c.getURL(c.Config.HealthEndpoint))
 	if err != nil {
 		return err
 	}
+	defer res.Body.Close()
+
 	err = errorhandler.GetErrorResponse(res)
 	if err != nil {
 		return err
@@ -61,10 +66,12 @@ func (c *Client) IsAvailable() error {
 }
 
 func (c *Client) GetAccounts() ([]model.AccountData, error) {
-	res, err := http.Get(c.getURL(c.Config.AccountsEndpoint))
+	res, err := c.Config.Client.Get(c.getURL(c.Config.AccountsEndpoint))
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
+
 	err = errorhandler.GetErrorResponse(res)
 	if err != nil {
 		return nil, err
@@ -86,10 +93,11 @@ func (c *Client) CreateAccount(data model.AccountData) (*model.AccountData, erro
 		return nil, err
 	}
 
-	res, err := http.Post(c.getURL(c.Config.AccountsEndpoint), "application/json", bytes.NewBuffer(body))
+	res, err := c.Config.Client.Post(c.getURL(c.Config.AccountsEndpoint), "application/json", bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
 	err = errorhandler.GetErrorResponse(res)
 	if err != nil {
 		return nil, err
@@ -102,4 +110,25 @@ func (c *Client) CreateAccount(data model.AccountData) (*model.AccountData, erro
 	}
 	fmt.Println(string(resBody))
 	return nil, nil
+}
+
+func (c *Client) DeleteAccount(id string, version int64) error {
+	req, err := http.NewRequest("DELETE", c.getURLWithId(c.Config.AccountsEndpoint, id), nil)
+	if err != nil {
+		return err
+	}
+	q := req.URL.Query()
+	q.Add("version", strconv.FormatInt(version, 10))
+	req.URL.RawQuery = q.Encode()
+
+	res, err := c.Config.Client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+	err = errorhandler.GetDeleteErrorResponse(res)
+	if err != nil {
+		return err
+	}
+	return nil
 }

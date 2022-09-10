@@ -1,11 +1,8 @@
 package main
 
 import (
-	"encoding/json"
 	client "erni93/form3-interview-accountapi/client"
-	model "erni93/form3-interview-accountapi/models"
 	"fmt"
-	"os"
 )
 
 func main() {
@@ -14,16 +11,21 @@ func main() {
 
 	client.GetAccounts()
 
-	file, err := os.ReadFile("./samples/new-account-success-input.json")
-	if err != nil {
-		panic(err)
-	}
-	jsonText := string(file)
-	input := model.NewAccountInput{}
-	json.Unmarshal([]byte(jsonText), &input)
-	data, err := client.CreateAccount(*input.Data)
-	if err != nil {
-		fmt.Printf("Error %s \n", err)
-	}
-	fmt.Printf("Final data %v \n", data)
+	err := client.DeleteAccount("ad27e265-9605-4b4b-a0e5-3003ea9cc4dc", int64(0))
+	fmt.Printf("Result %v \n", err)
+	/*
+
+		file, err := os.ReadFile("./samples/new-account-success-input.json")
+		if err != nil {
+			panic(err)
+		}
+		jsonText := string(file)
+		input := model.NewAccountInput{}
+		json.Unmarshal([]byte(jsonText), &input)
+		data, err := client.CreateAccount(*input.Data)
+		if err != nil {
+			fmt.Printf("Error %s \n", err)
+		}
+		fmt.Printf("Final data %v \n", data)
+	*/
 }

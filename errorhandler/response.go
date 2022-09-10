@@ -25,3 +25,10 @@ func GetErrorResponse(res *http.Response) error {
 
 	return errors.New(errRes.ErrorMessage)
 }
+
+func GetDeleteErrorResponse(res *http.Response) error {
+	if res.StatusCode == http.StatusNoContent {
+		return nil
+	}
+	return fmt.Errorf("%w http %d", ErrInvalidHttpResponse, res.StatusCode)
+}
