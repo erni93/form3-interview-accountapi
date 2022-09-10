@@ -41,11 +41,15 @@ type AccountAttributes struct {
 	Switched                *bool    `json:"switched,omitempty"`
 }
 
-type NewAccountInput struct {
+type DataAccountData struct {
 	Data *AccountData `json:"data"`
 }
 
-type NewAccountOutput struct {
+type DataAccountDataList struct {
+	Data []*AccountData `json:"data"`
+}
+
+type DataAccountCreated struct {
 	Data *AccountCreated `json:"data"`
 }
 

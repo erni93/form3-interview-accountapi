@@ -6,7 +6,6 @@ import (
 	errorhandler "erni93/form3-interview-accountapi/errorhandler"
 	model "erni93/form3-interview-accountapi/models"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"strconv"
 )
@@ -65,7 +64,7 @@ func (c *Client) IsAvailable() error {
 	return nil
 }
 
-func (c *Client) GetAccounts() ([]model.AccountData, error) {
+func (c *Client) GetAccounts() (*model.DataAccountDataList, error) {
 	res, err := c.Config.Client.Get(c.getURL(c.Config.AccountsEndpoint))
 	if err != nil {
 		return nil, err
@@ -77,17 +76,36 @@ func (c *Client) GetAccounts() ([]model.AccountData, error) {
 		return nil, err
 	}
 
-	resBody, err := ioutil.ReadAll(res.Body)
+	var output model.DataAccountDataList
+	err = json.NewDecoder(res.Body).Decode(&output)
 	if err != nil {
-		fmt.Printf("client: could not read response body: %s\n", err)
 		return nil, err
 	}
-	fmt.Println(string(resBody))
-	return make([]model.AccountData, 0), nil
+	return &output, nil
 }
 
-func (c *Client) CreateAccount(data model.AccountData) (*model.AccountData, error) {
-	input := model.NewAccountInput{Data: &data}
+func (c *Client) GetAccount(id string) (*model.DataAccountData, error) {
+	res, err := c.Config.Client.Get(c.getURLWithId(c.Config.AccountsEndpoint, id))
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	err = errorhandler.GetErrorResponse(res)
+	if err != nil {
+		return nil, err
+	}
+
+	var output model.DataAccountData
+	err = json.NewDecoder(res.Body).Decode(&output)
+	if err != nil {
+		return nil, err
+	}
+	return &output, nil
+}
+
+func (c *Client) CreateAccount(data model.AccountData) (*model.DataAccountCreated, error) {
+	input := model.DataAccountData{Data: &data}
 	body, err := json.Marshal(input)
 	if err != nil {
 		return nil, err
@@ -103,13 +121,12 @@ func (c *Client) CreateAccount(data model.AccountData) (*model.AccountData, erro
 		return nil, err
 	}
 
-	resBody, err := ioutil.ReadAll(res.Body)
+	var output model.DataAccountCreated
+	err = json.NewDecoder(res.Body).Decode(&output)
 	if err != nil {
-		fmt.Printf("client: could not read response body: %s\n", err)
 		return nil, err
 	}
-	fmt.Println(string(resBody))
-	return nil, nil
+	return &output, nil
 }
 
 func (c *Client) DeleteAccount(id string, version int64) error {
@@ -126,7 +143,7 @@ func (c *Client) DeleteAccount(id string, version int64) error {
 		return err
 	}
 	defer res.Body.Close()
-	err = errorhandler.GetDeleteErrorResponse(res)
+	err = errorhandler.GetErrorResponse(res)
 	if err != nil {
 		return err
 	}
