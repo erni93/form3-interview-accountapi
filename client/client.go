@@ -1,8 +1,12 @@
 package client
 
 import (
-	"errors"
+	"bytes"
+	"encoding/json"
+	errorhandler "erni93/form3-interview-accountapi/errorhandler"
+	model "erni93/form3-interview-accountapi/models"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 )
 
@@ -49,8 +53,53 @@ func (c *Client) IsAvailable() error {
 	if err != nil {
 		return err
 	}
-	if res.StatusCode != http.StatusOK {
-		return errors.New(fmt.Sprintf("client: invalid http response %d", res.StatusCode))
+	err = errorhandler.GetErrorResponse(res)
+	if err != nil {
+		return err
 	}
 	return nil
+}
+
+func (c *Client) GetAccounts() ([]model.AccountData, error) {
+	res, err := http.Get(c.getURL(c.Config.AccountsEndpoint))
+	if err != nil {
+		return nil, err
+	}
+	err = errorhandler.GetErrorResponse(res)
+	if err != nil {
+		return nil, err
+	}
+
+	resBody, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		fmt.Printf("client: could not read response body: %s\n", err)
+		return nil, err
+	}
+	fmt.Println(string(resBody))
+	return make([]model.AccountData, 0), nil
+}
+
+func (c *Client) CreateAccount(data model.AccountData) (*model.AccountData, error) {
+	input := model.NewAccountInput{Data: &data}
+	body, err := json.Marshal(input)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := http.Post(c.getURL(c.Config.AccountsEndpoint), "application/json", bytes.NewBuffer(body))
+	if err != nil {
+		return nil, err
+	}
+	err = errorhandler.GetErrorResponse(res)
+	if err != nil {
+		return nil, err
+	}
+
+	resBody, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		fmt.Printf("client: could not read response body: %s\n", err)
+		return nil, err
+	}
+	fmt.Println(string(resBody))
+	return nil, nil
 }
