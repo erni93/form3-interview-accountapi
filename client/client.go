@@ -23,7 +23,7 @@ type Client struct {
 }
 
 var (
-	DefaultHostname         = "http://localhost:8080"
+	DefaultHostname         = "http://accountapi:8080"
 	DefaultVersion          = "v1"
 	DefaultHealthEndpoint   = "health"
 	DefaultAccountsEndpoint = "organisation/accounts"

@@ -1,6 +1,16 @@
 version: '3'
 
 services:
+  api-tests:
+      build:
+        context: .
+        dockerfile: ./Dockerfile
+      depends_on:
+        - accountapi
+        - postgresql
+        - vault
+      volumes:
+        - .:/tests
   accountapi:
     image: form3tech/interview-accountapi:v1.0.0-46-gb3b6c766
     restart: on-failure
