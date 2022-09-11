@@ -64,7 +64,7 @@ func (c *Client) IsAvailable() error {
 	return nil
 }
 
-func (c *Client) GetAccounts() (*model.DataAccountDataList, error) {
+func (c *Client) GetAccounts() ([]*model.AccountData, error) {
 	res, err := c.Config.Client.Get(c.getURL(c.Config.AccountsEndpoint))
 	if err != nil {
 		return nil, err
@@ -81,10 +81,10 @@ func (c *Client) GetAccounts() (*model.DataAccountDataList, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &output, nil
+	return output.Data, nil
 }
 
-func (c *Client) GetAccount(id string) (*model.DataAccountData, error) {
+func (c *Client) GetAccount(id string) (*model.AccountData, error) {
 	res, err := c.Config.Client.Get(c.getURLWithId(c.Config.AccountsEndpoint, id))
 	if err != nil {
 		return nil, err
@@ -101,10 +101,10 @@ func (c *Client) GetAccount(id string) (*model.DataAccountData, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &output, nil
+	return output.Data, nil
 }
 
-func (c *Client) CreateAccount(data model.AccountData) (*model.DataAccountCreated, error) {
+func (c *Client) CreateAccount(data model.AccountData) (*model.AccountCreated, error) {
 	input := model.DataAccountData{Data: &data}
 	body, err := json.Marshal(input)
 	if err != nil {
@@ -126,7 +126,7 @@ func (c *Client) CreateAccount(data model.AccountData) (*model.DataAccountCreate
 	if err != nil {
 		return nil, err
 	}
-	return &output, nil
+	return output.Data, nil
 }
 
 func (c *Client) DeleteAccount(id string, version int64) error {
