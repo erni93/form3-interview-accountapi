@@ -4,7 +4,7 @@ https://github.com/erni93/form3-interview-accountapi
 
 ## Comments
 
-I don't have too much experience with Go so probably it can be improve 😉
+I don't have too much experience with Go so probably it can be improved 😉
 
 Some open sources projects that I have done
 
